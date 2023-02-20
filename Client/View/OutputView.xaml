@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="Client.View.OutputView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Client.View"
+             xmlns:viewModels="clr-namespace:Client.ViewModels"
+             xmlns:infrastructure="clr-namespace:Client.Infrastructure"
+             xmlns:system="clr-namespace:System;assembly=System.Runtime"
+             d:DataContext="{d:DesignInstance Type=viewModels:OutputViewModel, IsDesignTimeCreatable=False}"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <infrastructure:InvertableBooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></infrastructure:InvertableBooleanToVisibilityConverter>
+    </UserControl.Resources>
+    <Grid>
+        <DataGrid ItemsSource="{Binding Data}" AutoGenerateColumns="True" IsReadOnly="True"  >
+            <DataGrid.Visibility>
+                <Binding Path="DisplayError" Converter="{StaticResource BooleanToVisibilityConverter}">
+                    <Binding.ConverterParameter>
+                        <system:Boolean>true</system:Boolean>
+                    </Binding.ConverterParameter>
+                </Binding>
+            </DataGrid.Visibility>
+        </DataGrid>
+        <TextBox Text="{Binding ErrorText}" IsReadOnly="True" BorderBrush="Red" >
+            <TextBox.Visibility>
+                <Binding Path="DisplayError" Converter="{StaticResource BooleanToVisibilityConverter}">
+                    <Binding.ConverterParameter>
+                        <system:Boolean>false</system:Boolean>
+                    </Binding.ConverterParameter>
+                </Binding>
+            </TextBox.Visibility>
+        </TextBox>
+    </Grid>
+</UserControl>
