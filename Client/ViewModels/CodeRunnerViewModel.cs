@@ -69,8 +69,8 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
             );
 
         _project = _workspace.AddProject(projectInfo);
-        
-        //var document = workspace.AddDocument(project.Id, "MyClass.cs", SourceText.From(code));
+        this.IsActive = true;
+
     }
 
     [RelayCommand]
@@ -79,7 +79,7 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         var json = Messenger.Send<RequestJson>().Response;
         var code = Messenger.Send<RequestJsonCsharp>().Response;
         ApplyContract(code);        
-        UpdateCode(json);
+        UpdateCode();
 
         if (await CompileWorkspace() is {succeeded: true} res)
         {
@@ -134,7 +134,9 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
 
     public void Receive(CSharpChanged message)
     {
-        ApplyContract(message.Value);
+        ApplyContract(message.Value.Code);
+        var code = GenerateCode(message.Value.Json);
+        Document.Text = code;   
     }
 
     private void ApplyContract(string message)
@@ -151,7 +153,8 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         }
     }
 
-    private void UpdateCode( string json)
+
+    private string GenerateCode(string json)
     {
         var jToken = JToken.Parse(json);
         var isArray = jToken is JArray;
@@ -167,7 +170,7 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
             {
                 public object Process({{type}} source)
                 {
-                    {{Document.Text}}
+                    return source;
                 }
 
                 public object Run(string json)
@@ -179,15 +182,20 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
          }
         """";
 
+        return text;
+    }
+
+    private void UpdateCode()
+    {
         if (_workspace.CurrentSolution.GetProject(_project.Id).Documents.FirstOrDefault(x => x.Name == "Source.cs") is { } document)
         {
-            var newDocument = document.WithText(SourceText.From(text));
+            var newDocument = document.WithText(SourceText.From(Document.Text));
 
             _workspace.TryApplyChanges(newDocument.Project.Solution);
         }
         else
         {
-            _workspace.AddDocument(_project.Id, "Source.cs", SourceText.From(text));
+            _workspace.AddDocument(_project.Id, "Source.cs", SourceText.From(Document.Text));
         }
 
     }
@@ -197,9 +205,7 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
 
     public async Task<(Assembly assembly, bool succeeded)> CompileWorkspace()
     {
-
-       // _workspace.CurrentSolution
-
+        
        var compilation = await _workspace.CurrentSolution.GetProject(_project.Id).GetCompilationAsync();
 
 
@@ -228,19 +234,16 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         return (Assembly.Load(memoryStream.ToArray()), true);
     }
 
-    public async  Task<IEnumerable<string>> GetSuggestions(TextLocation location)
+    public async  Task<IEnumerable<string>> GetSuggestions(int location)
     {
         var json = Messenger.Send<RequestJson>().Response;
-        UpdateCode(json);
+        UpdateCode();
 
         if (_workspace.CurrentSolution.GetProject(_project.Id).Documents.FirstOrDefault(x => x.Name == "Source.cs") is
             { } document)
         {
             var completionService = CompletionService.GetService(document);
-            var sourceText = await document.GetTextAsync();
-            var position = sourceText.Lines.GetPosition(new LinePosition(8+location.Line, 12+location.Column));
-            var subText = sourceText.GetSubText(position);
-            var result = await completionService.GetCompletionsAsync(document, position);
+            var result = await completionService.GetCompletionsAsync(document, location);
             return result.ItemsList.Select(x => x.DisplayText);
         }
 

@@ -63,8 +63,8 @@ namespace Client.View
                 
                 // Open code completion after the user has pressed dot:
                 completionWindow = new CompletionWindow(TextEditor.TextArea);
-                var location = TextEditor.Document.GetLocation(TextEditor.CaretOffset);
-                var result = await viewModel.GetSuggestions(location);
+                //var location = TextEditor.Document.GetLocation(TextEditor.CaretOffset);
+                var result = await viewModel.GetSuggestions(TextEditor.CaretOffset);
 
                 IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
                 foreach (var sug in result)

@@ -3,33 +3,33 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Client.Infrastructure;
 using Client.Messages;
 using Client.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.CodeAnalysis.Operations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using NJsonSchema;
 using NJsonSchema.CodeGeneration.CSharp;
-using MessageBox = System.Windows.MessageBox;
 
 namespace Client;
 
 public partial class MainWindowViewModel : ObservableRecipient
 {
+    private Persistence _persistence = new();
+    
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor("SaveCommand")]
     private string? _fileSource = null;
 
-    [ObservableProperty]
-    private SourceViewModel _source;
+    [ObservableProperty] private SourceViewModel _source;
 
-    [ObservableProperty]
-    private GeneratedClassViewModel _generatedClass;
+    [ObservableProperty] private GeneratedClassViewModel _generatedClass;
 
-    [ObservableProperty]
-    private CodeRunnerViewModel _codeRunner;
+    [ObservableProperty] private CodeRunnerViewModel _codeRunner;
 
     [ObservableProperty] private ErrorsViewModel _errors;
 
@@ -40,35 +40,55 @@ public partial class MainWindowViewModel : ObservableRecipient
         Directory.CreateDirectory(path);
 
         OpenFileDialog dialog = new OpenFileDialog();
+        dialog.Filter = "(*.dr)|*.dr";
         dialog.InitialDirectory =
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Dark Raven");
         var result = dialog.ShowDialog();
-        
+        if (result == DialogResult.OK)
+        {
+            var data = await _persistence.LoadAsync(dialog.FileName);
+            Source.Document.Text = data.json;
+            GeneratedClass.Document.Text = data.parsedJson;
+            Messenger.Send(new CSharpChanged(new CsharpChangedMessage(data.parsedJson, data.json)));
+            CodeRunner.Document.Text = data.code;
+            FileSource = dialog.FileName;
+            OnPropertyChanged(nameof(CanSave));
+        }
     }
 
     public bool CanSave()
     {
-        return _fileSource != null;
+        return FileSource != null;
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]
-    public void Save()
+    public async Task Save()
     {
-        MessageBox.Show("Awaiting implementation");
+        await _persistence.SaveAsync(FileSource!,
+            new SaveData(this.Source.Document.Text, this.GeneratedClass.Document.Text,
+                this.CodeRunner.Document.Text));
     }
 
     [RelayCommand]
-    public void SaveAs()
+    public async Task SaveAs()
     {
-
+        SaveFileDialog dialog = new SaveFileDialog();
+        dialog.Filter = "(*.dr)|*.dr";
+        var result = dialog.ShowDialog();
+        if (result == DialogResult.OK)
+        {
+            await _persistence.SaveAsync(dialog.FileName,
+                new SaveData(this.Source.Document.Text, this.GeneratedClass.Document.Text,
+                    this.CodeRunner.Document.Text));
+            FileSource = dialog.FileName;
+        }
     }
 
     [RelayCommand]
     public void Close()
     {
-        
     }
-     
+
     public MainWindowViewModel()
     {
         Source = new SourceViewModel();
@@ -78,64 +98,57 @@ public partial class MainWindowViewModel : ObservableRecipient
         Errors.IsActive = true;
         this.IsActive = true;
     }
-
 }
 
-
-public class JsonLanguageConverter 
+public class JsonLanguageConverter
+{
+    public (bool success, string details) InputIsValid(string source)
     {
-    
-
-        public (bool success, string details) InputIsValid(string source)
+        try
         {
-            try
-            {
-                JToken.Parse(source);
-                return (true, default!);
-            }
-            catch (JsonReaderException e)
-            {
-                return (false, e.Message);
-            }
+            JToken.Parse(source);
+            return (true, default!);
         }
-
-        public string GenerateCsharp(string input)
+        catch (JsonReaderException e)
         {
-            var csharpSettings = new CSharpGeneratorSettings
-            {
-                ClassStyle = CSharpClassStyle.Poco,
-            };
-
-            var schema = JsonSchema.FromSampleJson(input);
-
-            var cSharpGenerator = new CSharpGenerator(schema,csharpSettings);
-            var result = cSharpGenerator.GenerateFile();
-
-            return result;
-        }
-
-       
-
-
-
-        public string PrimaryClass { get; set; } = "ReturnObject";
-
-        public object Deserialize(Type parameterType, string requestSource)
-        {
-            var enumerableType = typeof(IEnumerable<>).MakeGenericType(parameterType);
-
-            var result = JToken.Parse(requestSource);
-            if (result is JObject jObject)
-            {
-                var arr = new JArray { jObject };
-                requestSource = arr.ToString();
-            }
-
-            return JsonConvert.DeserializeObject(
-                requestSource, enumerableType,
-                new JsonSerializerSettings
-                {
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                });
+            return (false, e.Message);
         }
     }
+
+    public string GenerateCsharp(string input)
+    {
+        var csharpSettings = new CSharpGeneratorSettings
+        {
+            ClassStyle = CSharpClassStyle.Poco,
+        };
+
+        var schema = JsonSchema.FromSampleJson(input);
+
+        var cSharpGenerator = new CSharpGenerator(schema, csharpSettings);
+        var result = cSharpGenerator.GenerateFile();
+
+        return result;
+    }
+
+
+    public string PrimaryClass { get; set; } = "ReturnObject";
+
+    public object Deserialize(Type parameterType, string requestSource)
+    {
+        var enumerableType = typeof(IEnumerable<>).MakeGenericType(parameterType);
+
+        var result = JToken.Parse(requestSource);
+        if (result is JObject jObject)
+        {
+            var arr = new JArray {jObject};
+            requestSource = arr.ToString();
+        }
+
+        return JsonConvert.DeserializeObject(
+            requestSource, enumerableType,
+            new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+    }
+}

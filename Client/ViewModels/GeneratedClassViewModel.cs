@@ -23,6 +23,6 @@ public partial class GeneratedClassViewModel : ObservableObject
 
     private void Handler(object recipient, CSharpChanged message)
     {
-        Document.Text = message.Value;
+        Document.Text = message.Value.Code;
     }
 }

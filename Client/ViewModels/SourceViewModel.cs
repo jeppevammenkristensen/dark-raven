@@ -36,7 +36,7 @@ public partial class SourceViewModel : ObservableObject
         else 
         {
             var generateCsharp = _jsonLanguageConverter.GenerateCsharp(_document.Text);
-            WeakReferenceMessenger.Default.Send(new CSharpChanged(generateCsharp));
+            WeakReferenceMessenger.Default.Send(new CSharpChanged(new CsharpChangedMessage(generateCsharp, _document.Text)));
         }
     }
 

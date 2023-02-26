@@ -2,9 +2,14 @@
 
 namespace Client.Messages;
 
-public class CSharpChanged : ValueChangedMessage<string>
+public class CSharpChanged : ValueChangedMessage<CsharpChangedMessage>
 {
-    public CSharpChanged(string value) : base(value)
+    public CSharpChanged(CsharpChangedMessage value) : base(value)
     {
     }
+}
+
+public record CsharpChangedMessage(string Code, string Json)
+{
+
 }

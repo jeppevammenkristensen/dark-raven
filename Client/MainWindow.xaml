@@ -37,6 +37,7 @@
         <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding OpenCommand}" />
         <KeyBinding Key="S" Modifiers="Ctrl" Command="{Binding SaveCommand}" />
         <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="{Binding SaveAsCommand}" />
+        <KeyBinding Key="F5" Command="{Binding CodeRunner.CompileCommand}"></KeyBinding>
         <!--<KeyBinding Key="Z" Modifiers="Ctrl" Command="ApplicationCommands.Undo" ></KeyBinding>-->
     </Window.InputBindings>
     
