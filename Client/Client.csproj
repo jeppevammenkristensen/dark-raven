@@ -20,4 +20,26 @@
     <Folder Include="Infrastructure\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Images\ExtensionMethod.png" />
+    <None Remove="Images\Local.png" />
+    <None Remove="Images\Method.png" />
+    <Content Include="Images\local.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Remove="Images\Parameter.png" />
+    <Content Include="Images\parameter.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <None Remove="Images\Property.png" />
+    <Content Include="Images\Property.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\ExtensionMethod.png" />
+    <Resource Include="Images\Method.png" />
+  </ItemGroup>
+
 </Project>

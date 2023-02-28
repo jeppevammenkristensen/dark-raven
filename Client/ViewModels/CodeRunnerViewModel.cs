@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Client.Messages;
+using Client.View;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -28,6 +29,9 @@ namespace Client.ViewModels;
 
 public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CSharpChanged>
 {
+    private static readonly HashSet<string> CtrlSpace = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        { "Parameter", "Local" };
+
     [ObservableProperty] private TextDocument _document;
 
     [ObservableProperty] private object? _output;
@@ -234,7 +238,7 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         return (Assembly.Load(memoryStream.ToArray()), true);
     }
 
-    public async  Task<IEnumerable<string>> GetSuggestions(int location)
+    public async  Task<IEnumerable<MyCompletionData>> GetSuggestions(int location, bool ctrlSpace)
     {
         var json = Messenger.Send<RequestJson>().Response;
         UpdateCode();
@@ -244,10 +248,17 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         {
             var completionService = CompletionService.GetService(document);
             var result = await completionService.GetCompletionsAsync(document, location);
-            return result.ItemsList.Select(x => x.DisplayText);
+            if (!ctrlSpace)
+                return result.ItemsList.Select(x => new MyCompletionData(x.DisplayText,  $"{x.DisplayText} {x.Tags.First()}", x.Tags.First()))
+                    .OrderBy(x => x.Group);
+            else
+            {
+                return result.ItemsList.Where(x => x.Tags.Any(y => CtrlSpace.Contains(y)))
+                    .Select(x => new MyCompletionData(x.DisplayText,  $"{x.DisplayText} {x.Tags.First()}", x.Tags.First()));
+            }
         }
 
-        return Enumerable.Empty<string>();
+        return Enumerable.Empty<MyCompletionData>();
 
     }
 }

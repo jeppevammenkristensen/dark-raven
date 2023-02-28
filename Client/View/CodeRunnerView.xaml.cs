@@ -55,23 +55,23 @@ namespace Client.View
             toolTip.IsOpen = false;
         }
 
-        CompletionWindow completionWindow;
+        CompletionWindow? completionWindow;
 
         async void textEditor_TextArea_TextEntered(object sender, TextCompositionEventArgs e)
         {
-            if (e.Text == "." && DataContext is CodeRunnerViewModel viewModel) {
+           if (e.Text == "." && DataContext is CodeRunnerViewModel viewModel) {
                 
                 // Open code completion after the user has pressed dot:
                 completionWindow = new CompletionWindow(TextEditor.TextArea);
                 //var location = TextEditor.Document.GetLocation(TextEditor.CaretOffset);
-                var result = await viewModel.GetSuggestions(TextEditor.CaretOffset);
-
+                var result = await viewModel.GetSuggestions(TextEditor.CaretOffset,false);
+           
                 IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
                 foreach (var sug in result)
                 {
-                    data.Add(new MyCompletionData(sug));
+                    data.Add(sug);
                 }
-
+           
                 completionWindow.Show();
                 completionWindow.Closed += delegate {
                     completionWindow = null;
@@ -91,24 +91,66 @@ namespace Client.View
             // Do not set e.Handled=true.
             // We still want to insert the character that was typed.
         }
+
+        private async void CommandBinding_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (DataContext is not CodeRunnerViewModel viewModel)
+                return;
+            
+            // Open code completion after the user has pressed dot:
+            completionWindow = new CompletionWindow(TextEditor.TextArea);
+            //var location = TextEditor.Document.GetLocation(TextEditor.CaretOffset);
+            var result = await viewModel.GetSuggestions(TextEditor.CaretOffset, true);
+
+            IList<ICompletionData> data = completionWindow.CompletionList.CompletionData;
+            
+            foreach (var sug in result)
+            {
+                data.Add(sug);
+            }
+
+            if (data.Any())
+            {
+                completionWindow.Show();
+                completionWindow.Closed += delegate {
+                    completionWindow = null;
+                };    
+            }
+            
+        }
     }
 
     public class MyCompletionData : ICompletionData
     {
-        public MyCompletionData(string text)
+        public string Group { get; set; }
+
+        public MyCompletionData(string text, string display, string group)
         {
+            Group = group;
             this.Text = text;
+            this.Content = display;
         }
 
         public System.Windows.Media.ImageSource Image {
-            get { return null; }
+            get {
+                try
+                {
+                    return new BitmapImage(new Uri($"pack://application:,,,/Images/{Group}.png"));
+                }
+                catch 
+                {
+                    return null;
+                }
+            }
         }
 
         public string Text { get; private set; }
 
         // Use this property if you want to show a fancy UIElement in the list.
-        public object Content {
-            get { return this.Text; }
+        public object Content
+        {
+            get;
+            set;
         }
 
         public object Description {

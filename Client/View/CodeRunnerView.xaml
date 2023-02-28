@@ -14,6 +14,7 @@
         <DataTemplate DataType="{x:Type viewModels:OutputViewModel}">
             <local:OutputView></local:OutputView>
         </DataTemplate>
+        <RoutedUICommand x:Key="CtrlSpace" Text="Another Text" />
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -24,7 +25,12 @@
         </Grid.RowDefinitions>
         <avalonedit:TextEditor x:Name="TextEditor" SyntaxHighlighting="C#" Document="{Binding Document}" FontFamily="Consolas"
                                Background="White" Foreground="Black" FontSize="12" ShowLineNumbers="True" MouseHover="TextEditor_OnMouseHover" MouseHoverStopped="TextEditor_OnMouseHoverStopped" >
-            
+            <avalonedit:TextEditor.CommandBindings>
+                <CommandBinding Command="{StaticResource CtrlSpace}" Executed="CommandBinding_OnExecuted" ></CommandBinding>
+            </avalonedit:TextEditor.CommandBindings>
+            <avalonedit:TextEditor.InputBindings>
+                <KeyBinding Modifiers="Control" Key="Space" Command="{StaticResource CtrlSpace}"></KeyBinding>
+            </avalonedit:TextEditor.InputBindings>
 
         </avalonedit:TextEditor>
         <StackPanel Grid.Row="1" HorizontalAlignment="Right" Orientation="Horizontal">
