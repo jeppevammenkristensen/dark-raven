@@ -20,6 +20,7 @@
             Name="avEditor" 
             Background="White"
             Margin="15"
+            DataObject.Pasting="AvEditor_OnPasting"
             SyntaxHighlighting="Json"       
             FontFamily="Consolas"
             FontSize="12"

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Client.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -31,7 +32,8 @@ public partial class SourceViewModel : ObservableObject
     {
         if (_jsonLanguageConverter.InputIsValid(_document.Text) is {success: false} output)
         {
-            int i = 0;
+            WeakReferenceMessenger.Default.Send(
+                new DiagnosticsCreated(ImmutableArray.Create<DiagnosticModel>(output.details)));
         }
         else 
         {

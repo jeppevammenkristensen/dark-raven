@@ -5,6 +5,7 @@
     <TargetFramework>net7.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>DALL·E 2023-03-01 23.31.34 - an image of a monkey wrench to be used for an wpf app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
     <None Remove="Images\ExtensionMethod.png" />
     <None Remove="Images\Local.png" />
     <None Remove="Images\Method.png" />
+    <Content Include="DALL·E 2023-03-01 23.31.34 - an image of a monkey wrench to be used for an wpf app.ico" />
     <Content Include="Images\local.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

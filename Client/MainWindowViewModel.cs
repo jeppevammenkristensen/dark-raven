@@ -102,7 +102,7 @@ public partial class MainWindowViewModel : ObservableRecipient
 
 public class JsonLanguageConverter
 {
-    public (bool success, string details) InputIsValid(string source)
+    public (bool success, DiagnosticModel details) InputIsValid(string source)
     {
         try
         {
@@ -111,7 +111,7 @@ public class JsonLanguageConverter
         }
         catch (JsonReaderException e)
         {
-            return (false, e.Message);
+            return (false, new DiagnosticModel(e.Message, e.LinePosition, e.LineNumber, DiagnosticSource.Json) );
         }
     }
 
@@ -120,6 +120,8 @@ public class JsonLanguageConverter
         var csharpSettings = new CSharpGeneratorSettings
         {
             ClassStyle = CSharpClassStyle.Poco,
+            RequiredPropertiesMustBeDefined = false,
+            GenerateNullableReferenceTypes = true,
         };
 
         var schema = JsonSchema.FromSampleJson(input);

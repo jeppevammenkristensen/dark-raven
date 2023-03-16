@@ -5,7 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "Client\Client.csproj", "{7FE43299-937F-4A42-ADCE-C83ABF5C599C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.Tests", "Client.Tests\Client.Tests.csproj", "{A6153C60-0213-4DF0-AC9F-0CD899B70985}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client.Tests", "Client.Tests\Client.Tests.csproj", "{A6153C60-0213-4DF0-AC9F-0CD899B70985}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonParsing", "JsonParser\JsonParsing.csproj", "{7BAA2052-B8CD-498A-81FF-FC34908926E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonParsing.Tests", "JsonParsing.Tests\JsonParsing.Tests.csproj", "{67DB3C58-653F-451E-A47F-1261C7506D1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{A6153C60-0213-4DF0-AC9F-0CD899B70985}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6153C60-0213-4DF0-AC9F-0CD899B70985}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6153C60-0213-4DF0-AC9F-0CD899B70985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BAA2052-B8CD-498A-81FF-FC34908926E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BAA2052-B8CD-498A-81FF-FC34908926E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BAA2052-B8CD-498A-81FF-FC34908926E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BAA2052-B8CD-498A-81FF-FC34908926E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67DB3C58-653F-451E-A47F-1261C7506D1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67DB3C58-653F-451E-A47F-1261C7506D1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67DB3C58-653F-451E-A47F-1261C7506D1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67DB3C58-653F-451E-A47F-1261C7506D1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

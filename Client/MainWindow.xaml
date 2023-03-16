@@ -10,7 +10,7 @@
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel, IsDesignTimeCreatable=True}"
-        Title="MainWindow" Height="800" Width="1200">
+        Title="Json to C# Query" Height="800" Width="1200">
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Closing">
             <b:InvokeCommandAction Command="{Binding CloseCommand}"></b:InvokeCommandAction>

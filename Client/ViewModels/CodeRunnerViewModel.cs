@@ -172,6 +172,7 @@ public partial class CodeRunnerViewModel : ObservableRecipient, IRecipient<CShar
         {
             public class Runner 
             {
+                // Put your code inside this method
                 public object Process({{type}} source)
                 {
                     return source;
