@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
@@ -26,6 +27,8 @@ namespace JsonParsing
         {
             return new PathId(_path.Concat(new[] {path}).ToArray());
         }
+
+        public string Last => _path.Last();
 
         public int Depth => _path.Length;
 
@@ -65,6 +68,107 @@ namespace JsonParsing
             return new PathId(_path[..^1]);
         }
     }
+
+    public class SchemaVisitor
+    {
+        private readonly StringBuilder _builder;
+
+        public SchemaVisitor(StringBuilder builder)
+        {
+            _builder = builder;
+        }
+
+        public void VisitDefinition(JsonDefinition definition)
+        {
+            _builder.AppendLine($"public class {definition.Path!.Last}");
+            _builder.AppendLine("{");
+
+            foreach (var property in definition.Properties)
+            {
+                VisitProperties(property.Value);
+            }
+            
+
+            _builder.AppendLine("}");
+            _builder.AppendLine();
+
+
+        }
+
+        public void VisitProperties(JsonProperty property)
+        {
+            _builder.Append("   public ");
+            VisitPropertyType(property);
+            if (property.CanBeNull)
+            {
+                _builder.Append("?");
+            }
+
+            _builder.Append(" ");
+            _builder.Append(property.SuggestedName);
+            _builder.AppendLine(""" {get; set;}""");
+        }
+
+        private void VisitPropertyType(JsonProperty property)
+        {
+            switch (property.Type)
+            {
+                case JsonObjectType.None:
+                    _builder.Append("object");
+                    break;
+                case JsonObjectType.Array:
+                    _builder.Append(value: $"System.Collections.Generic.List<{property.SuggestedName}>");
+                    break;
+                case JsonObjectType.Boolean:
+                    _builder.Append(value: $"bool");
+                    break;
+                case JsonObjectType.Integer:
+                    _builder.Append("int");
+                    break;
+                case JsonObjectType.Null:
+                    _builder.Append("object");
+                    break;
+                case JsonObjectType.Number:
+                    _builder.Append("double");
+                    break;
+                case JsonObjectType.Object:
+                    _builder.Append(property.SuggestedName);
+                    break;
+                case JsonObjectType.String:
+                    _builder.Append("string");
+                    break;
+                case JsonObjectType.File:
+                    _builder.Append("byte[]");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public void Visit(JsonDefinition definition)
+        {
+            foreach (var definitionPathIdDefinition in definition.PathIdDefinitions)
+            {
+                VisitDefinition(definitionPathIdDefinition.Value);
+            }
+        }
+
+        public override string ToString() => _builder.ToString();
+
+    }
+
+
+    public class SchemaConverter
+    {
+        public string Convert(JsonDefinition definition)
+        {
+            var visitor = new SchemaVisitor(new StringBuilder());
+            visitor.Visit(definition);
+            return visitor.ToString();
+
+        }
+
+    }
     
 
     public class Parser
@@ -95,6 +199,7 @@ namespace JsonParsing
 
             Generate(token, schema, ref schema, new PathId(RootName));
             schema.Process();
+            
             return schema;
         }
 
@@ -251,6 +356,7 @@ namespace JsonParsing
                 Generate(jProperty.Value, propertySchema, ref rootDefinition, pathId.CreateSubpath(suggestedName));
 
                 propertySchema.Name = jProperty.Name;
+                propertySchema.SuggestedName = suggestedName;
                 definition.Properties[jProperty.Name] = propertySchema;
                 if (propertySchema.Type is JsonObjectType.Object or JsonObjectType.Array)
                 {
@@ -462,7 +568,8 @@ namespace JsonParsing
     {
         public string Name { get; set; }
         public bool CanBeNull { get; set; }
-        
+        public string SuggestedName { get; set; }
+
 
         public override string ToString()
         {

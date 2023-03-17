@@ -142,6 +142,9 @@ public class ParserTests
     }]}
     """);
         int i = 0;
+        var converter = new SchemaConverter();
+        var converted = converter.Convert(result);
+
         result.Should().NotBeNull();
         result!.Type.Should().Be(JsonObjectType.Array);
 
